@@ -53,25 +53,15 @@ sep=np.array([[np.nan, 0,0]])
 Pts_hex=np.concatenate((Pts_hex, sep, Pts_hex[[1,8],:], sep, Pts_hex[[2,9],:], sep, Pts_hex[[3,10],:], sep, Pts_hex[[4,11],:], sep, Pts_hex[[5,12],:]), axis=0)
 
 ## Wireframe for triclinic crystal
-a,b,c = 1, 1.1, 1.5
-alpha=np.deg2rad(70)
-beta=np.deg2rad(75)
-gamma=np.deg2rad(80)
-n=(cos(alpha)-cos(gamma)*cos(beta))/sin(gamma)
-Omega=a*b*c*sqrt(1-cos(alpha)**2-cos(beta)**2-cos(gamma)**2+2*cos(alpha)*cos(beta)*cos(gamma))
-M=np.array([[a, b*cos(gamma), c*cos(beta)],[0, b*sin(gamma), c*n],[0,0,Omega/(a*b*sin(gamma))]])
-Pts_triclin = np.dot(M, Pts_cube.T).T
-
-def plotCube(geom='cube', scale=1, centered=False, color='grey', marker='.'):
-    if geom=='cube':
-        Pts0 = Pts_cube
-    else:
-        Pts0 = Pts_triclin
-    Pts=Pts0*scale
-    if centered:
-        C= np.mean(Pts[np.all(np.isfinite(Pts), axis=1),:],axis=0)
-        Pts += np.array([0.5,0.5,0.5])-C
-    ax.plot3D(*Pts.T, color, marker=marker)
+def triclin_mat():
+    a,b,c = 1, 1.1, 1.5
+    alpha=np.deg2rad(70)
+    beta=np.deg2rad(75)
+    gamma=np.deg2rad(80)
+    n=(cos(alpha)-cos(gamma)*cos(beta))/sin(gamma)
+    Omega=a*b*c*sqrt(1-cos(alpha)**2-cos(beta)**2-cos(gamma)**2+2*cos(alpha)*cos(beta)*cos(gamma))
+    M=np.array([[a, b*cos(gamma), c*cos(beta)],[0, b*sin(gamma), c*n],[0,0,Omega/(a*b*sin(gamma))]])
+    return M
 
 fig, ax = plt.subplots()
 plt.subplots_adjust(left=0.25, bottom=0.25)
@@ -102,24 +92,24 @@ radio = RadioButtons(rax, ('Triclinic','Cubic', 'Hexagonal'), active=0)
 def show_crystal(val):
     angles=np.deg2rad([sphi1.val, sPhi.val,sphi2.val])
     mat=euler2mat(*angles).T
+    uvw=np.eye(3)
     if radio.value_selected == 'Cubic':
         Pts0 = Pts_cube
     elif radio.value_selected == 'Triclinic':
-        Pts0 = Pts_triclin
+        Pts0 = np.dot(triclin_mat(), Pts_cube.T).T
+        uvw = triclin_mat()
     else:
         Pts0 = Pts_hex
+    uvw=np.matmul(mat,uvw)
     Pts=np.dot(mat, Pts0.T).T*scale
     dC=np.array([0.5,0.5,0.5])
     Pts += dC  
     clear_axis()
-    plotCube()
-    ax.plot3D(*Pts.T, color='black', marker='.')
-    u=np.dot(mat, np.array([1,0,0]))
-    v=np.dot(mat, np.array([0,1,0]))
-    w=np.dot(mat, np.array([0,0,1]))    
-    q1 =ax.quiver3D(*dC,*u, length=0.5, color='red')
-    q2 =ax.quiver3D(*dC,*v, length=0.5, color='green')
-    q3 =ax.quiver3D(*dC,*w, length=0.5, color='blue')
+    ax.plot3D(*Pts_cube.T, color='grey')
+    ax.plot3D(*Pts.T, color='black', marker='.')   
+    q1 =ax.quiver3D(*dC,*uvw[:,0], length=0.5, color='red')
+    q2 =ax.quiver3D(*dC,*uvw[:,1], length=0.5, color='green')
+    q3 =ax.quiver3D(*dC,*uvw[:,2], length=0.5, color='blue')
     if radio.value_selected == 'Hexagonal':
         legend_entries=[r'$[11\bar{2}0]$', r'$[1\bar{1}00]$', r'$[0001]$']
     else:
