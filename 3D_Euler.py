@@ -12,6 +12,14 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, RadioButtons, CheckButtons
 from PoleFigure import add_polefigure
 
+# Global parameters
+scale=0.2                               # Size of fondamental lattice
+axcolor = 'lightgoldenrodyellow'        # Color of sliders and so
+color_cycle=('red', 'green', 'blue')    # Colors of directions
+
+
+ranges={'Triclinic':(360,180,360), 'Cubic':(360,90,90), 'Hexagonal':(360,90,60),}
+
 def euler2mat(phi1,Phi,phi2):
     g1=np.array([[cos(phi1), sin(phi1), 0],
                   [-sin(phi1), cos(phi1), 0],
@@ -29,8 +37,6 @@ def cart2sph(x,y,z):
     phi=np.arctan2(y,x)
     theta=np.arccos(z/r)
     return r, phi, theta
-
-color_cycle=('red', 'green', 'blue')
 
 ## Wireframe for cubic crystal
 Pts_cube=np.array([[0,0,0],
@@ -52,7 +58,7 @@ Pts_cube=np.array([[0,0,0],
               [np.nan,0,0],
               [0,1,0],
               [0,1,1]])
-
+    
 ## Wireframe for hexagonal crystal
 theta=np.linspace(0,2*np.pi, 7)
 pl1=np.concatenate([ [np.cos(theta)], [np.sin(theta)],[np.zeros(shape=(7))]]).T
@@ -86,8 +92,8 @@ def clear_axis():
     ax.set_yticks(())
     ax.set_zticks(())
 
-scale=0.2
-axcolor = 'lightgoldenrodyellow'
+
+# Sliders for Euler angles
 ax_phi1 = plt.axes([0.3, 0.15, 0.6, 0.03], facecolor=axcolor)
 ax_Phi = plt.axes([0.3, 0.1, 0.6, 0.03], facecolor=axcolor)
 ax_phi2 = plt.axes([0.3, 0.05, 0.6, 0.03], facecolor=axcolor)
@@ -104,8 +110,8 @@ ax2.set_rlim(0.0, np.pi / 2)
 ax2.set_theta_zero_location("N")
 ax2.set_xticks(np.arange(0,2*np.pi, np.pi/2))
 ax2.set_xticklabels(('x', 'y', '-x', '-y'))
-#ax2.set_yticklabels(())
 
+# Radio buttons for crystal symmetry
 rax = plt.axes([0.025, 0.1, 0.2, 0.15], facecolor=axcolor)
 radio = RadioButtons(rax, ('Triclinic','Cubic', 'Hexagonal'), active=0)
 
@@ -147,17 +153,11 @@ def show_crystal(val):
 show_crystal(0)
              
 def switch_geom(geom):
-    if geom == 'Cubic':
-        sPhi.valmax = 89
-        sphi2.valmax = 89        
-    elif geom == 'Hexagonal':
-        sPhi.valmax = 89
-        sphi2.valmax = 59
-    else:
-        sPhi.valmax = 179
-        sphi2.valmax = 359
-    sPhi.set_val(sPhi.val % (sPhi.valmax + 1))
-    sphi2.set_val(sphi2.val % (sphi2.valmax +1))
+    range=ranges[geom]
+    sPhi.valmax = range[1]-1
+    sphi2.valmax = range[2]-1  
+    sPhi.set_val(sPhi.val % range[1])
+    sphi2.set_val(sphi2.val % range[2])
     show_crystal(1)
     fig.canvas.draw_idle()
     
