@@ -102,18 +102,22 @@ sPhi = Slider(ax_Phi, '$\Phi$', 0, 179, valinit=0, valstep=1, valfmt='%0.0f°')
 sphi2 = Slider(ax_phi2, '$\phi_2$', 0, 359, valinit=0, valstep=1, valfmt='%0.0f°')
 
 ## Init the pole figure
-ax2 = add_polefigure(fig, 122, projection='stereographic')
+ax_pf = add_polefigure(fig, 122, projection='stereographic')
 scats=[0,0,0]
 for i in range(0,3):
-    scats[i] = ax2.scatter(0, 0, color=color_cycle[i])
-ax2.set_rlim(0.0, np.pi / 2)
-ax2.set_theta_zero_location("N")
-ax2.set_xticks(np.arange(0,2*np.pi, np.pi/2))
-ax2.set_xticklabels(('x', 'y', '-x', '-y'))
+    scats[i] = ax_pf.scatter(0, 0, color=color_cycle[i])
+ax_pf.set_rlim(0.0, np.pi / 2)
+ax_pf.set_theta_zero_location("N")
+ax_pf.set_xticks(np.arange(0,2*np.pi, np.pi/2))
+ax_pf.set_xticklabels(('x', 'y', '-x', '-y'))
 
 # Radio buttons for crystal symmetry
-rax = plt.axes([0.025, 0.05, 0.2, 0.15], facecolor=axcolor)
-radio = RadioButtons(rax, ('Triclinic','Cubic', 'Hexagonal'), active=0)
+rax_cs = plt.axes([0.025, 0.05, 0.2, 0.15], facecolor=axcolor, title='Crystal symmetry')
+radio_cs = RadioButtons(rax_cs, ('Triclinic','Cubic', 'Hexagonal'), active=0)
+
+# Radio buttons for PF projection
+rax_pf = plt.axes([0.025, 0.3, 0.2, 0.15], facecolor=axcolor, title='PF projection')
+radio_pf = RadioButtons(rax_pf, ('Stereographic','Lambert'), active=0)
 
 
 q=[0,0,0]
@@ -121,9 +125,9 @@ def show_crystal(val):
     angles=np.deg2rad([sphi1.val, sPhi.val,sphi2.val])
     mat=euler2mat(*angles).T
     uvw=np.eye(3)
-    if radio.value_selected == 'Cubic':
+    if radio_cs.value_selected == 'Cubic':
         Pts0 = Pts_cube
-    elif radio.value_selected == 'Triclinic':
+    elif radio_cs.value_selected == 'Triclinic':
         Pts0 = np.dot(triclin_mat(), Pts_cube.T).T
         uvw = triclin_mat()
     else:
@@ -143,7 +147,7 @@ def show_crystal(val):
             phi += np.pi
             theta = np.pi - theta
         scats[i].set_offsets((phi,theta))
-    if radio.value_selected == 'Hexagonal':
+    if radio_cs.value_selected == 'Hexagonal':
         legend_entries=[r'$[11\bar{2}0]$', r'$[1\bar{1}00]$', r'$[0001]$']
     else:
         legend_entries=['[100]', '[010]', '[001]']
@@ -160,7 +164,12 @@ def switch_geom(geom):
     sphi2.set_val(sphi2.val % range[2])
     show_crystal(0)
     
-radio.on_clicked(switch_geom)        
+def switch_proj(proj):
+    ax_pf.set_rscale(proj)
+    fig.canvas.draw_idle()
+    
+radio_cs.on_clicked(switch_geom)
+radio_pf.on_clicked(switch_proj)       
 sphi1.on_changed(show_crystal)
 sPhi.on_changed(show_crystal)
 sphi2.on_changed(show_crystal)
