@@ -9,7 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D # Required for 3d projection
 import numpy as np 
 from numpy import cos, sin, sqrt
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, RadioButtons, CheckButtons
+from matplotlib.widgets import Slider, RadioButtons
 from PoleFigure import add_polefigure
 
 # Global parameters
@@ -97,9 +97,9 @@ def clear_axis():
 ax_phi1 = plt.axes([0.3, 0.15, 0.6, 0.03], facecolor=axcolor)
 ax_Phi = plt.axes([0.3, 0.1, 0.6, 0.03], facecolor=axcolor)
 ax_phi2 = plt.axes([0.3, 0.05, 0.6, 0.03], facecolor=axcolor)
-sphi1 = Slider(ax_phi1, '$\phi_1$', 0, 359, valinit=0, valstep=1, valfmt='%0.0f°')
-sPhi = Slider(ax_Phi, '$\Phi$', 0, 179, valinit=0, valstep=1, valfmt='%0.0f°')
-sphi2 = Slider(ax_phi2, '$\phi_2$', 0, 359, valinit=0, valstep=1, valfmt='%0.0f°')
+sphi1 = Slider(ax_phi1, '$\phi_1$', 0, 360, valinit=0, valstep=1, valfmt='%0.0f°', closedmax=False)
+sPhi = Slider(ax_Phi, '$\Phi$', 0, 180, valinit=0, valstep=1, valfmt='%0.0f°', closedmax=False)
+sphi2 = Slider(ax_phi2, '$\phi_2$', 0, 360, valinit=0, valstep=1, valfmt='%0.0f°', closedmax=False)
 
 ## Init the pole figure
 ax_pf = add_polefigure(fig, 122, projection='stereographic')
@@ -158,8 +158,8 @@ show_crystal(0)
              
 def switch_geom(geom):
     range=ranges[geom]
-    sPhi.valmax = range[1]-1
-    sphi2.valmax = range[2]-1  
+    sPhi.valmax = range[1]
+    sphi2.valmax = range[2]
     sPhi.set_val(sPhi.val % range[1])
     sphi2.set_val(sphi2.val % range[2])
     show_crystal(0)
