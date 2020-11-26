@@ -9,7 +9,8 @@ from mpl_toolkits.mplot3d import Axes3D # Required for 3d projection
 import numpy as np 
 from numpy import cos, sin, sqrt
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, RadioButtons
+from matplotlib.widgets import Slider, RadioButtons, CheckButtons
+from PoleFigure import add_polefigure
 
 def euler2mat(phi1,Phi,phi2):
     g1=np.array([[cos(phi1), sin(phi1), 0],
@@ -22,6 +23,14 @@ def euler2mat(phi1,Phi,phi2):
                   [-sin(phi2), cos(phi2), 0],
                   [0,0,1]])
     return np.matmul(g3, np.matmul(g2, g1))
+
+def cart2sph(x,y,z):
+    r=x**2+y**2+z**2
+    phi=np.arctan2(y,x)
+    theta=np.arccos(z/r)
+    return r, phi, theta
+
+color_cycle=('red', 'green', 'blue')
 
 ## Wireframe for cubic crystal
 Pts_cube=np.array([[0,0,0],
@@ -55,17 +64,18 @@ Pts_hex=np.concatenate((Pts_hex, sep, Pts_hex[[1,8],:], sep, Pts_hex[[2,9],:], s
 ## Wireframe for triclinic crystal
 def triclin_mat():
     a,b,c = 1, 1.1, 1.5
-    alpha=np.deg2rad(70)
-    beta=np.deg2rad(75)
-    gamma=np.deg2rad(80)
+    alpha=np.deg2rad(80)
+    beta=np.deg2rad(85)
+    gamma=np.deg2rad(95)
     n=(cos(alpha)-cos(gamma)*cos(beta))/sin(gamma)
-    Omega=a*b*c*sqrt(1-cos(alpha)**2-cos(beta)**2-cos(gamma)**2+2*cos(alpha)*cos(beta)*cos(gamma))
-    M=np.array([[a, b*cos(gamma), c*cos(beta)],[0, b*sin(gamma), c*n],[0,0,Omega/(a*b*sin(gamma))]])
+    m33=c*sqrt(sin(beta)**2-n**2)
+    M=np.array([[a, b*cos(gamma), c*cos(beta)],[0, b*sin(gamma), c*n],[0,0,m33]])
     return M
 
-fig, ax = plt.subplots()
+fig = plt.figure(figsize = [9, 4.5])
+ax = fig.add_subplot(121, projection='3d')
 plt.subplots_adjust(left=0.25, bottom=0.25)
-ax = plt.axes(projection='3d')
+
 
 def clear_axis():
     ax.cla()
@@ -75,20 +85,32 @@ def clear_axis():
     ax.set_xticks(())
     ax.set_yticks(())
     ax.set_zticks(())
-    
-clear_axis()
+
 scale=0.2
 axcolor = 'lightgoldenrodyellow'
-ax_phi1 = plt.axes([0.25, 0.2, 0.65, 0.03], facecolor=axcolor)
-ax_Phi = plt.axes([0.25, 0.15, 0.65, 0.03], facecolor=axcolor)
-ax_phi2 = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
+ax_phi1 = plt.axes([0.3, 0.15, 0.6, 0.03], facecolor=axcolor)
+ax_Phi = plt.axes([0.3, 0.1, 0.6, 0.03], facecolor=axcolor)
+ax_phi2 = plt.axes([0.3, 0.05, 0.6, 0.03], facecolor=axcolor)
 sphi1 = Slider(ax_phi1, '$\phi_1$', 0, 359, valinit=0, valstep=1, valfmt='%0.0f°')
 sPhi = Slider(ax_Phi, '$\Phi$', 0, 179, valinit=0, valstep=1, valfmt='%0.0f°')
-sphi2 = Slider(ax_phi2, '$\phi_2$', 0, 259, valinit=0, valstep=1, valfmt='%0.0f°')
+sphi2 = Slider(ax_phi2, '$\phi_2$', 0, 359, valinit=0, valstep=1, valfmt='%0.0f°')
 
-rax = plt.axes([0.025, 0.5, 0.2, 0.15], facecolor=axcolor)
+## Init the pole figure
+ax2 = add_polefigure(fig, 122, projection='stereographic')
+scats=[0,0,0]
+for i in range(0,3):
+    scats[i] = ax2.scatter(0, 0, color=color_cycle[i])
+ax2.set_rlim(0.0, np.pi / 2)
+ax2.set_theta_zero_location("N")
+ax2.set_xticks(np.arange(0,2*np.pi, np.pi/2))
+ax2.set_xticklabels(('x', 'y', '-x', '-y'))
+#ax2.set_yticklabels(())
+
+rax = plt.axes([0.025, 0.1, 0.2, 0.15], facecolor=axcolor)
 radio = RadioButtons(rax, ('Triclinic','Cubic', 'Hexagonal'), active=0)
 
+
+q=[0,0,0]
 def show_crystal(val):
     angles=np.deg2rad([sphi1.val, sPhi.val,sphi2.val])
     mat=euler2mat(*angles).T
@@ -106,19 +128,24 @@ def show_crystal(val):
     Pts += dC  
     clear_axis()
     ax.plot3D(*Pts_cube.T, color='grey')
-    ax.plot3D(*Pts.T, color='black', marker='.')   
-    q1 =ax.quiver3D(*dC,*uvw[:,0], length=0.5, color='red')
-    q2 =ax.quiver3D(*dC,*uvw[:,1], length=0.5, color='green')
-    q3 =ax.quiver3D(*dC,*uvw[:,2], length=0.5, color='blue')
+    ax.plot3D(*Pts.T, color='black', marker='.')
+    for i in range(0,3):
+        uvw_i=uvw[:,i]
+        q[i]=ax.quiver3D(*dC,*uvw_i, length=0.5, color=color_cycle[i])
+        r, phi, theta = cart2sph(*uvw_i)
+        if theta > np.pi/2:
+            phi += np.pi
+            theta = np.pi - theta
+        scats[i].set_offsets((phi,theta))
     if radio.value_selected == 'Hexagonal':
         legend_entries=[r'$[11\bar{2}0]$', r'$[1\bar{1}00]$', r'$[0001]$']
     else:
         legend_entries=['[100]', '[010]', '[001]']
-    rax.legend([q1, q2, q3], legend_entries, bbox_to_anchor=(0, 0), loc='upper left')
+    ax.legend(q, legend_entries, bbox_to_anchor=(0, 1), loc='upper right')
     fig.canvas.draw_idle()
 
 show_crystal(0)
-
+             
 def switch_geom(geom):
     if geom == 'Cubic':
         sPhi.valmax = 89
@@ -138,4 +165,5 @@ radio.on_clicked(switch_geom)
 sphi1.on_changed(show_crystal)
 sPhi.on_changed(show_crystal)
 sphi2.on_changed(show_crystal)
+
 plt.show()
