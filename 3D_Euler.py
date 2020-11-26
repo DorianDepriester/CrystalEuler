@@ -82,7 +82,7 @@ fig = plt.figure(figsize = [9, 4.5])
 ax = fig.add_subplot(121, projection='3d')
 plt.subplots_adjust(left=0.25, bottom=0.25)
 
-
+## The most simple way to update a 3D arrow is to clear it...
 def clear_axis():
     ax.cla()
     ax.set_xlabel('x')
@@ -112,7 +112,7 @@ ax2.set_xticks(np.arange(0,2*np.pi, np.pi/2))
 ax2.set_xticklabels(('x', 'y', '-x', '-y'))
 
 # Radio buttons for crystal symmetry
-rax = plt.axes([0.025, 0.1, 0.2, 0.15], facecolor=axcolor)
+rax = plt.axes([0.025, 0.05, 0.2, 0.15], facecolor=axcolor)
 radio = RadioButtons(rax, ('Triclinic','Cubic', 'Hexagonal'), active=0)
 
 
@@ -158,8 +158,7 @@ def switch_geom(geom):
     sphi2.valmax = range[2]-1  
     sPhi.set_val(sPhi.val % range[1])
     sphi2.set_val(sphi2.val % range[2])
-    show_crystal(1)
-    fig.canvas.draw_idle()
+    show_crystal(0)
     
 radio.on_clicked(switch_geom)        
 sphi1.on_changed(show_crystal)
