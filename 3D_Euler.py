@@ -85,9 +85,9 @@ plt.subplots_adjust(left=0.25, bottom=0.25)
 ## The most simple way to update a 3D arrow is to clear it...
 def clear_axis():
     ax.cla()
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
+    ax.set_xlabel('x',labelpad=-15)
+    ax.set_ylabel('y',labelpad=-15)
+    ax.set_zlabel('z',labelpad=-15)
     ax.set_xticks(())
     ax.set_yticks(())
     ax.set_zticks(())
@@ -110,6 +110,7 @@ ax_pf.set_rlim(0.0, np.pi / 2)
 ax_pf.set_theta_zero_location("N")
 ax_pf.set_xticks(np.arange(0,2*np.pi, np.pi/2))
 ax_pf.set_xticklabels(('x', 'y', '-x', '-y'))
+ax_pf.tick_params(axis='x', which='major', pad=-5)
 
 # Radio buttons for crystal symmetry
 rax_cs = plt.axes([0.025, 0.05, 0.2, 0.15], facecolor=axcolor, title='Crystal symmetry')
