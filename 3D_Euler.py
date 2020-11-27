@@ -21,6 +21,7 @@ color_cycle=('red', 'green', 'blue')    # Colors of directions
 ranges={'Triclinic':(360,180,360), 'Cubic':(360,90,90), 'Hexagonal':(360,90,60),}
 
 def euler2mat(phi1,Phi,phi2):
+    '''Compute rotation matrix from Euler angles'''
     g1=np.array([[cos(phi1), sin(phi1), 0],
                   [-sin(phi1), cos(phi1), 0],
                   [0,0,1]])
@@ -33,10 +34,22 @@ def euler2mat(phi1,Phi,phi2):
     return np.matmul(g3, np.matmul(g2, g1))
 
 def cart2sph(x,y,z):
+    '''Convert cartesiant coordinates (x,y,z) to spherical coordinates 
+    (radius, azimuth, colatitude)'''
     r=x**2+y**2+z**2
     phi=np.arctan2(y,x)
     theta=np.arccos(z/r)
     return r, phi, theta
+
+## The most simple way to update a 3D arrow is to clear it...
+def clear_axis(ax):
+    ax.cla()
+    ax.set_xlabel('x',labelpad=-15)
+    ax.set_ylabel('y',labelpad=-15)
+    ax.set_zlabel('z',labelpad=-15)
+    ax.set_xticks(())
+    ax.set_yticks(())
+    ax.set_zticks(())
 
 ## Wireframe for cubic crystal
 Pts_cube=np.array([[0,0,0],
@@ -82,17 +95,6 @@ fig = plt.figure(figsize = [9, 4.5])
 ax = fig.add_subplot(121, projection='3d')
 plt.subplots_adjust(left=0.25, bottom=0.25)
 
-## The most simple way to update a 3D arrow is to clear it...
-def clear_axis():
-    ax.cla()
-    ax.set_xlabel('x',labelpad=-15)
-    ax.set_ylabel('y',labelpad=-15)
-    ax.set_zlabel('z',labelpad=-15)
-    ax.set_xticks(())
-    ax.set_yticks(())
-    ax.set_zticks(())
-
-
 # Sliders for Euler angles
 ax_phi1 = plt.axes([0.3, 0.15, 0.6, 0.03], facecolor=axcolor)
 ax_Phi = plt.axes([0.3, 0.1, 0.6, 0.03], facecolor=axcolor)
@@ -123,6 +125,7 @@ radio_pf = RadioButtons(rax_pf, ('Stereographic','Lambert'), active=0)
 
 q=[0,0,0]
 def show_crystal(val):
+    print(val)
     angles=np.deg2rad([sphi1.val, sPhi.val,sphi2.val])
     mat=euler2mat(*angles).T
     uvw=np.eye(3)
@@ -137,7 +140,7 @@ def show_crystal(val):
     Pts=np.dot(mat, Pts0.T).T*scale
     dC=np.array([0.5,0.5,0.5])
     Pts += dC  
-    clear_axis()
+    clear_axis(ax)
     ax.plot3D(*Pts_cube.T, color='grey')
     ax.plot3D(*Pts.T, color='black', marker='.')
     for i in range(0,3):
