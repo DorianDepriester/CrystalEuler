@@ -36,7 +36,7 @@ def euler2mat(phi1,Phi,phi2):
 def cart2sph(x,y,z):
     '''Convert cartesiant coordinates (x,y,z) to spherical coordinates 
     (radius, azimuth, colatitude)'''
-    r=x**2+y**2+z**2
+    r=np.sqrt(x**2+y**2+z**2)
     phi=np.arctan2(y,x)
     theta=np.arccos(z/r)
     return r, phi, theta
@@ -125,7 +125,6 @@ radio_pf = RadioButtons(rax_pf, ('Stereographic','Lambert'), active=0)
 
 q=[0,0,0]
 def show_crystal(val):
-    print(val)
     angles=np.deg2rad([sphi1.val, sPhi.val,sphi2.val])
     mat=euler2mat(*angles).T
     uvw=np.eye(3)
