@@ -10,9 +10,9 @@ def format_coord(phi, theta):
     :param phi: azimuth
     :param theta: colatitude
     """
-    return ('azimuth=%0.3f\N{DEGREE SIGN}, '
-            'colatitude=%0.3f\N{DEGREE SIGN}'
-            % (np.degrees(phi), np.degrees(theta)))
+    return ('azimuth=%0.1f\N{DEGREE SIGN}, '
+            'colatitude=%0.1f\N{DEGREE SIGN}'
+            % (np.degrees(phi) % 360, np.degrees(theta)))
     
 class StereographicScale(mscale.ScaleBase):
     name = 'stereographic'
@@ -105,6 +105,7 @@ def add_polefigure(fig, *args, projection='stereographic', **kwargs):
         projection = 'lambert'
     ax = fig.add_subplot(*args, projection='polar', **kwargs)
     ax.set_rlim(0.0, np.pi / 2)
+    ax.set_ylim(0.0, 2*np.pi)
     ax.set_rscale(projection)
     ax.format_coord = format_coord
     return ax
