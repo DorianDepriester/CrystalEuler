@@ -34,7 +34,7 @@ def euler2mat(phi1,Phi,phi2):
     return np.matmul(g3, np.matmul(g2, g1))
 
 def cart2sph(x,y,z):
-    '''Convert cartesiant coordinates (x,y,z) to spherical coordinates 
+    '''Convert cartesian coordinates (x,y,z) to spherical coordinates 
     (radius, azimuth, colatitude)'''
     r=np.sqrt(x**2+y**2+z**2)
     phi=np.arctan2(y,x)
@@ -142,7 +142,7 @@ def show_crystal(val):
     clear_axis(ax)
     ax.plot3D(*Pts_cube.T, color='grey')
     ax.plot3D(*Pts.T, color='black', marker='.')
-    for i in range(0,3):
+    for i in range(0,uvw.shape[1]):
         uvw_i=uvw[:,i]
         q[i]=ax.quiver3D(*dC,*uvw_i, length=0.5, color=color_cycle[i])
         r, phi, theta = cart2sph(*uvw_i)
@@ -151,7 +151,7 @@ def show_crystal(val):
             theta = np.pi - theta
         scats[i].set_offsets((phi,theta))
     if radio_cs.value_selected == 'Hexagonal':
-        legend_entries=[r'$[11\bar{2}0]$', r'$[1\bar{1}00]$', r'$[0001]$']
+        legend_entries=[r'$[11\bar{2}0]$', r'$[\bar{1}100]$', r'$[0001]$']
     else:
         legend_entries=['[100]', '[010]', '[001]']
     ax.legend(q, legend_entries, bbox_to_anchor=(0, 1), loc='upper right')
